@@ -6,57 +6,52 @@ on:
     paths:
       - 'supabase/**'
       - 'functions/**'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'supabase/**'
-      - 'functions/**'
 
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Supabase CLI
-      uses: supabase/setup-cli@v1
-      with:
-        version: latest
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
 
-    - name: Setup Deno for Edge Functions
-      uses: denoland/setup-deno@v1
-      with:
-        deno-version: v1.x
+      - name: Setup Deno for Edge Functions
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
 
-    - name: Validate database schema
-      run: |
-        if [ -d "supabase" ]; then
-          supabase db diff --schema public --local || echo "Schema validation completed"
-        else
-          echo "No Supabase directory found"
-        fi
+      - name: Validate database schema
+        run: |
+          if [ -d "supabase" ]; then
+            supabase db diff --schema public --local || echo "Schema validation completed"
+          else
+            echo "No Supabase directory found"
+          fi
 
-    - name: Check Edge Functions syntax
-      run: |
-        if [ -d "supabase/functions" ]; then
-          for func in supabase/functions/*/; do
-            if [ -d "$func" ]; then
-              echo "Checking function: $(basename "$func")"
-              deno check "$func"*.ts || echo "Function check completed"
-            fi
-          done
-        else
-          echo "No Edge Functions found"
-        fi
+      - name: Check Edge Functions syntax
+        run: |
+          if [ -d "supabase/functions" ]; then
+            for func in supabase/functions/*/; do
+              if [ -d "$func" ]; then
+                echo "Checking function: $(basename "$func")"
+                deno check "$func"*.ts || echo "Function check completed"
+              fi
+            done
+          else
+            echo "No Edge Functions found"
+          fi
 
-    - name: Test Edge Functions
-      run: |
-        if [ -d "supabase/functions" ]; then
-          supabase start
-          echo "Supabase started successfully"
-          supabase stop
-        else
-          echo "No functions to test"
-        fi
+      - name: Test Edge Functions
+        run: |
+          if [ -d "supabase/functions" ]; then
+            supabase start
+            echo "Supabase started successfully"
+            supabase stop
+          else
+            echo "No functions to test"
+          fi
